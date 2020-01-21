@@ -24,6 +24,20 @@ namespace Xbim.Geometry.Engine.Interop.Tests
             logger = loggerFactory.CreateLogger<Ifc4GeometryTests>();
         }
         [TestMethod]
+        // [DeploymentItem("TestFiles\\B_Beam_without_reinforcement_with_IfcSurfaceFeature.ifc")]
+        public void SurfaceFeatureTest()
+        {
+            using (var m = new MemoryModel(new Ifc4.EntityFactoryIfc4()))
+            {
+                m.LoadStep21("TestFiles\\B_Beam_without_reinforcement_with_IfcSurfaceFeature.ifc");
+                var c = new Xbim3DModelContext(m);
+                c.CreateContext(null, false);
+
+                Assert.IsTrue(true);
+            }
+        }
+
+        [TestMethod]
         public void MoveAndCopyTest()
         {
             //this test checks that a object is correctly copied and moved
