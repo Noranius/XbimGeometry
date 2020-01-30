@@ -113,6 +113,7 @@ namespace Xbim.Geometry.Engine.Interop.Tests
             {
                 Trace.WriteLine(String.Format("Entity  #{0} has zero volume>", entityLabel));
             }
+            Assert.IsNotNull(solid, $"Solid should not be null for entity #{entityLabel}");
             if (!ignoreVolume) Assert.IsTrue(solid.Volume > 0, "Volume should be greater than 0");
             Assert.IsTrue(solid.SurfaceArea > 0, "Surface Area should be greater than 0");
             Assert.IsTrue(solid.IsValid);
@@ -123,19 +124,18 @@ namespace Xbim.Geometry.Engine.Interop.Tests
                 {
 
                     Assert.IsTrue(face.OuterBound.IsValid, "Face has no outer bound in #" + entityLabel);
-
-                    Assert.IsTrue(face.Area > 0, "Face area should be greater than 0 in #" + entityLabel);
+                   
                     Assert.IsTrue(face.Perimeter > 0, "Face perimeter should be breater than 0 in #" + entityLabel);
-
-                    if (face.IsPlanar)
-                    {
-                        Assert.IsTrue(!face.Normal.IsInvalid(), "Face normal is invalid in #" + entityLabel);
-                        //  Assert.IsTrue(face.OuterBound.Edges.Count>2, "A face should have at least 3 edges");
-                        //   Assert.IsTrue(!face.OuterBound.Normal.IsInvalid(), "Face outerbound normal is invalid in #" + entityLabel);
-                        //   Assert.IsTrue(face.OuterBound.IsPlanar, "Face is planar but wire is not in #" + entityLabel);
-                    }
-                    else
-                        Assert.IsFalse(face.OuterBound.IsPlanar, "Face is not planar but wire is planar in #" + entityLabel);
+                    //srl this is not a valid test with spline surfaces
+                    //if (face.IsPlanar)
+                    //{
+                    //    Assert.IsTrue(!face.Normal.IsInvalid(), "Face normal is invalid in #" + entityLabel);
+                    //    //  Assert.IsTrue(face.OuterBound.Edges.Count>2, "A face should have at least 3 edges");
+                    //    //   Assert.IsTrue(!face.OuterBound.Normal.IsInvalid(), "Face outerbound normal is invalid in #" + entityLabel);
+                    //    //   Assert.IsTrue(face.OuterBound.IsPlanar, "Face is planar but wire is not in #" + entityLabel);
+                    //}
+                    //else
+                    //    Assert.IsFalse(face.OuterBound.IsPlanar, "Face is not planar but wire is planar in #" + entityLabel);
                     foreach (var edge in face.OuterBound.Edges)
                     {
                         Assert.IsTrue(edge.EdgeGeometry.IsValid, "Edge element is invalid in #" + entityLabel);

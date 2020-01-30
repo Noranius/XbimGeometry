@@ -4,8 +4,8 @@
 #include "XbimWireSet.h"
 #include <TopoDS_Face.hxx>
 #include <BRepBuilderAPI_FaceError.hxx>
-#include "OCC/src/Geom/Geom_Surface.hxx"
- 
+#include <Geom_Surface.hxx>
+#include <TColgp_SequenceOfPnt.hxx>
 using namespace System::Collections::Generic;
 using namespace Xbim::Ifc4::Interfaces;
 using namespace Xbim::Common::Geometry;
@@ -41,7 +41,7 @@ namespace Xbim
 			void Init(IIfcCompositeCurve ^ cCurve, ILogger^ logger);
 			void Init(IIfcPolyline ^ pline, ILogger^ logger);
 			void Init(IIfcPolyLoop ^ loop, ILogger^ logger);
-			void Init(IXbimWire^ wire, ILogger^ logger);
+			void Init(IXbimWire^ wire, bool isPlanar, double precision, int entityLabel, ILogger^ logger);
 			void Init(IXbimWire^ wire, XbimPoint3D pointOnFace, XbimVector3D faceNormal, ILogger^ logger);
 			void Init(IXbimFace^ face, ILogger^ logger);
 			void Init(IIfcBSplineSurface ^ surface, ILogger^ logger);
@@ -49,6 +49,7 @@ namespace Xbim
 			void Init(IIfcRationalBSplineSurfaceWithKnots ^ surface, ILogger^ logger);
 			void Init(IIfcCylindricalSurface ^ surface, ILogger^ logger);
 			void Init(double x, double y, double tolerance, ILogger^ logger); 
+			void Init(IIfcFace^ face, ILogger^ logger);
 		public:
 			
 			//destructors
@@ -115,13 +116,13 @@ namespace Xbim
 			XbimFace(IIfcCompositeCurve ^ cCurve, ILogger^ logger);
 			XbimFace(IIfcPolyline ^ pline, ILogger^ logger);
 			XbimFace(IIfcPolyLoop ^ loop, ILogger^ logger);
-			XbimFace(IXbimWire^ wire, ILogger^ logger);
+			XbimFace(IXbimWire^ wire, bool isPlanar, double precision, int entityLabel,  ILogger^ logger);
 			XbimFace(IXbimWire^ wire, XbimPoint3D pointOnface,  XbimVector3D faceNormal, ILogger^ logger);
-			XbimFace(IXbimFace^ face, ILogger^ logger);
 			XbimFace(IIfcSurface^ surface, XbimWire^ outerBound, IEnumerable<XbimWire^>^ innerBounds, ILogger^ logger);
 			XbimFace(IIfcFaceSurface^ surface, XbimWire^ outerBound, IEnumerable<XbimWire^>^ innerBounds, double tolerance, ILogger^ logger);
 			XbimFace(IIfcCylindricalSurface ^ surface, ILogger^ logger);
 			XbimFace(double x, double y, double tolerance, ILogger^ logger);
+			XbimFace(IIfcFace ^ face, ILogger^ logger);
 #pragma endregion
 
 #pragma region Internal Properties
@@ -141,6 +142,7 @@ namespace Xbim
 			Handle(Geom_Surface) GetSurface();
 			XbimVector3D NormalAt(double u, double v);
 			void SetLocation(TopLoc_Location loc);
+			static bool RemoveDuplicatePoints(TColgp_SequenceOfPnt& polygon, bool closed, double tol);
 #pragma endregion
 
 

@@ -13,7 +13,8 @@ namespace Xbim
 	namespace Geometry
 	{
 		
-		
+		static bool DoBoolean(const TopoDS_Shape& body, const TopTools_ListOfShape& tools, BOPAlgo_Operation op, double tolerance, TopoDS_Shape& result, int timeout);
+
 		private ref class VolumeComparer : IComparer<Tuple<double, XbimSolid^>^>
 		{
 		public:
@@ -40,6 +41,7 @@ namespace Xbim
 			void Init(IIfcSurfaceCurveSweptAreaSolid^ IIfcSolid, ILogger^ logger);
 			void Init(IIfcRevolvedAreaSolid^ solid, ILogger^ logger);
 			void Init(IIfcTriangulatedFaceSet^ IIfcSolid, ILogger^ logger);
+			void Init(IIfcPolygonalFaceSet^ IIfcSolid, ILogger^ logger);
 			void Init(IIfcFaceBasedSurfaceModel^ solid, ILogger^ logger);
 			void Init(IIfcShellBasedSurfaceModel^ solid, ILogger^ logger);
 			void Init(IIfcCsgSolid^ IIfcSolid, ILogger^ logger);
@@ -53,6 +55,7 @@ namespace Xbim
 				solids = nullptr;
 			};
 		    IXbimSolidSet^ DoBoolean(IXbimSolidSet^ arguments, BOPAlgo_Operation operation, double tolerance, ILogger^ logger);
+			
 		public:
 
 #pragma region destructors
@@ -83,6 +86,7 @@ namespace Xbim
 			XbimSolidSet(IIfcExtrudedAreaSolid^ solid, ILogger^ logger);
 			XbimSolidSet(IIfcRevolvedAreaSolid^ solid, ILogger^ logger);
 			XbimSolidSet(IIfcTriangulatedFaceSet^ IIfcSolid, ILogger^ logger);
+			XbimSolidSet(IIfcPolygonalFaceSet^ IIfcSolid, ILogger^ logger);
 			XbimSolidSet(IIfcFaceBasedSurfaceModel^ solid, ILogger^ logger);
 			XbimSolidSet(IIfcShellBasedSurfaceModel^ solid, ILogger^ logger);
 

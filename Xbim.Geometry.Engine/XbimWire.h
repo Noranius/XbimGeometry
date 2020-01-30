@@ -7,6 +7,7 @@
 #include <TopoDS_Edge.hxx>
 #include <vector>
 #include <NCollection_Vector.hxx>
+
 using namespace System;
 using namespace System::Collections::Generic;
 using namespace Xbim::Ifc4::Interfaces;
@@ -33,17 +34,11 @@ namespace Xbim
 #pragma region initialisation functions
 
 			void Init(double precision);
-			void Init(IIfcPolyline^ loop, ILogger^ logger);
-			void Init(IIfcPolyline^ loop, bool attemptClosing, ILogger^ logger);
-			void Init(IIfcCompositeCurve^ loop, ILogger^ logger);
-			void Init(IIfcTrimmedCurve^ loop, ILogger^ logger);
 			void Init(IIfcCurve^ loop, ILogger^ logger);
-			void Init(IIfcIndexedPolyCurve^ pcurve, ILogger^ logger);
-			void Init(IIfcBSplineCurve^ bspline, ILogger^ logger);
-			void Init(IIfcBSplineCurveWithKnots^ bSpline, ILogger^ logger);
-			void Init(IIfcRationalBSplineCurveWithKnots^ bSpline, ILogger^ logger);
+			void Init(IIfcCompositeCurve^ compCurve, ILogger^ logger);
 			void Init(IIfcCompositeCurveSegment^ compCurveSeg, ILogger^ logger);
-			void Init(IIfcBoundedCurve^ loop, ILogger^ logger);
+			void Init(IIfcPolyline^ profile,  ILogger^ logger);
+			void Init(IIfcIndexedPolyCurve ^ pCurve, ILogger ^ logger);
 			void Init(IIfcPolyLoop^ loop, ILogger^ logger);
 			void Init(IIfcArbitraryClosedProfileDef^ profile, ILogger^ logger);
 			void Init(IIfcArbitraryOpenProfileDef^ profile, ILogger^ logger);
@@ -71,7 +66,7 @@ namespace Xbim
 			bool AreEdgesC1(const TopoDS_Edge& e1, const TopoDS_Edge& e2, double precision, double angularTolerance);
 			bool SortEdgesForWire(const NCollection_Vector<TopoDS_Edge>& oldedges, NCollection_Vector<TopoDS_Edge>& newedges, NCollection_Vector<TopoDS_Edge>& notTaken, double tol, bool *pClosed, double* pMaxGap);
 			int  GetMatchTwoPntsPair(const gp_Pnt& b1, const gp_Pnt& e1, const gp_Pnt& b2, const gp_Pnt& e2, double& minDis, double& otherDis);
-		
+			
 			
 		public:
 
@@ -84,24 +79,24 @@ namespace Xbim
 #pragma region constructors
 
 			XbimWire() {}; //an empty invalid wire
-			XbimWire(XbimEdge^ edge);
+			XbimWire(XbimEdge^ edge); 
 
 			XbimWire(double x, double y, double tolerance, bool centre);
 			XbimWire(double precision);
 			XbimWire(const std::vector<gp_Pnt>& points, double tolerance);
 			XbimWire(const TopoDS_Wire& wire);
 			XbimWire(const TopoDS_Wire& wire, Object^ tag);
-			XbimWire(IIfcPolyline^ loop, ILogger^ logger);
-			XbimWire(IIfcPolyline^ loop, bool attemptClosing, ILogger^ logger);
-			XbimWire(IIfcBSplineCurve^ bspline, ILogger^ logger);
-			XbimWire(IIfcBSplineCurveWithKnots^ bSpline, ILogger^ logger);
-			XbimWire(IIfcRationalBSplineCurveWithKnots^ bSpline, ILogger^ logger);
-			XbimWire(IIfcCompositeCurve^ loop, ILogger^ logger);
-			XbimWire(IIfcTrimmedCurve^ loop, ILogger^ logger);
 			XbimWire(IIfcCurve^ loop, ILogger^ logger);
-			XbimWire(IIfcIndexedPolyCurve^ pcurve, ILogger^ logger);
+			//special case for building a composite curve as a wire and not a single edge
+			XbimWire(IIfcCompositeCurve^ compCurve, ILogger^ logger);
+			//srl need to revisit this, the sense is wrong for trimmed curves, really it should not be supported at all as the segment is not a curve
 			XbimWire(IIfcCompositeCurveSegment^ compCurveSeg, ILogger^ logger);
-			XbimWire(IIfcBoundedCurve^ loop, ILogger^ logger);
+
+			//Creates a wire of individual edges for each IfcPolyline segment, use XbimCurve for a single bspline edge
+			XbimWire(IIfcPolyline^ profile, ILogger^ logger);
+			//Creates a wire of individual edges for each IfcIndexedPolyCurve segment, use XbimCurve for a single bspline edge
+			XbimWire(IIfcIndexedPolyCurve^ profile, ILogger^ logger);
+
 			XbimWire(IIfcPolyLoop^ loop, ILogger^ logger);
 			XbimWire(IIfcArbitraryClosedProfileDef^ profile, ILogger^ logger);
 			XbimWire(IIfcArbitraryOpenProfileDef^ profile, ILogger^ logger);
@@ -146,12 +141,14 @@ namespace Xbim
 			virtual property XbimPoint3D End {XbimPoint3D get(); }
 			virtual IXbimWire^ Trim(double first, double last, double tolerance,ILogger^ logger);
 
+			virtual property XbimPoint3D BaryCentre {XbimPoint3D get(); }
 			virtual property double Length {double get(); }
 			virtual property XbimRect3D BoundingBox {XbimRect3D get() override; }
 			virtual IXbimGeometryObject^ Transform(XbimMatrix3D matrix3D) override;
 			virtual IXbimGeometryObject^ TransformShallow(XbimMatrix3D matrix3D)override;
 			void FuseColinearSegments(double tolerance, double angleTolerance, ILogger^ logger);
 			virtual property double Area {double get(); }
+			virtual property double MaxTolerance {double get() {return IsValid ? BRep_Tool::MaxTolerance(*pWire, TopAbs_VERTEX) : 0; } }
 #pragma endregion
 
 #pragma region Equality Overrides
@@ -166,8 +163,10 @@ namespace Xbim
 			property bool IsReversed {bool get() { return IsValid && pWire->Orientation() == TopAbs_REVERSED; }; }
 
 			XbimWire^ Trim(XbimVertex^ first, XbimVertex^ last, double tolerance, ILogger^ logger);
-
-
+			virtual property gp_Pnt StartPoint {gp_Pnt get(); }
+			virtual property gp_Pnt EndPoint {gp_Pnt get(); }
+			virtual property  TopoDS_Vertex StartVertex { TopoDS_Vertex get(); }
+			virtual property  TopoDS_Vertex EndVertex { TopoDS_Vertex get(); }
 
 			//Returns the start parameter of each segment/interval of the wire
 			virtual property List<double>^ IntervalParameters {List<double>^ get(); }
@@ -204,6 +203,7 @@ namespace Xbim
 
 			// Inherited via XbimOccShape
 			virtual void Mesh(IXbimMeshReceiver ^ mesh, double precision, double deflection, double angle) override;
+			
 		};
 
 		public ref class IfcPolylineComparer :IEqualityComparer<IIfcPolyline^>

@@ -10,6 +10,7 @@ using Xbim.Ifc4.Interfaces;
 namespace Xbim.Geometry.Engine.Interop.Tests.TestFiles
 {
     [TestClass ]
+    [DeploymentItem("TestFiles")]
     public class IfcExtrudedAreaSolidTests
     {
         static private IXbimGeometryEngine geomEngine;
@@ -23,7 +24,13 @@ namespace Xbim.Geometry.Engine.Interop.Tests.TestFiles
             geomEngine = new XbimGeometryEngine();
             logger = loggerFactory.CreateLogger<IfcAdvancedBrepTests>();
         }
-
+        [ClassCleanup]
+        static public void Cleanup()
+        {
+            loggerFactory = null;
+            geomEngine = null;
+            logger = null;
+        }
         [TestMethod]
         public void IfcExtrudedAreaSolidInvalidPlacementTest()
         {
@@ -44,9 +51,8 @@ namespace Xbim.Geometry.Engine.Interop.Tests.TestFiles
                 Assert.IsTrue(er.Entity != null, "No IIfcSweptDiskSolid found");
                 
                 var solid = geomEngine.CreateSolid(er.Entity, logger);
-                Assert.IsTrue(solid.Faces.Count == 5, "This solid should have 5 faces");
+                Assert.AreEqual(39, solid.Faces.Count , "This solid has the wrong number of faces");
             }
-
         }
     }
 }

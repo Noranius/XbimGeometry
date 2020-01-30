@@ -82,6 +82,7 @@ namespace XbimRegression
                         File.Delete(logFile);
                         result.Errors = 0;
                         result.Warnings = 0;
+                        result.Information = 0;
                     }
                     else
                     {
@@ -89,24 +90,25 @@ namespace XbimRegression
                         var tokens = txt.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                         result.Errors = tokens.Count(t => t == "\"Error\"");
                         result.Warnings = tokens.Count(t => t == "\"Warning\"");
+                        result.Information = Math.Max(0, tokens.Count(t => t == "\"Information\"") - 2); //we always get 2
                     }
-                    if (result!=null && !result.Failed)
+                    if (result != null && !result.Failed)
                     {
-                        Console.WriteLine($"Processed {file} : {result.Errors} errors, {result.Warnings} Warnings in {result.TotalTime}ms. {result.Entities} IFC Elements & {result.GeometryEntries} Geometry Nodes." );
+                        Console.WriteLine($"Processed {file} : {result.Errors} Errors, {result.Warnings} Warnings, {result.Information} Informational in {result.TotalTime}ms. {result.Entities} IFC Elements & {result.GeometryEntries} Geometry Nodes.");
                     }
                     else
                     {
                         Console.WriteLine("Processing failed for {0} after {1}ms.", file, result.TotalTime);
                     }
-                    result.FileName = file.Name;                 
+                    result.FileName = file.Name;
                     writer.WriteLine(result.ToCsv());
                     writer.Flush();
                 }
-               
+
                 writer.Close();
             }
             Console.WriteLine("Finished. Press Enter to continue...");
-           
+
             Console.ReadLine();
         }
 
@@ -119,7 +121,7 @@ namespace XbimRegression
                 var watch = new Stopwatch();
                 try
                 {
-                    
+
                     watch.Start();
                     using (var model = ParseModelFile(ifcFile, Params.Caching, logger))
                     {
@@ -167,6 +169,12 @@ namespace XbimRegression
                             };
 
                         }
+                        if (_params.Caching)
+                        {
+                            IfcStore s = ((IfcStore)model);
+                            s.SaveAs(xbimFilename, Xbim.IO.StorageType.Xbim);
+                            s.Close();
+                        }
                     }
                 }
 
@@ -174,9 +182,9 @@ namespace XbimRegression
                 {
                     logger.LogError(string.Format("Problem converting file: {0}", ifcFile), ex);
                     result.Failed = true;
-                    result.GeometryDuration = watch.ElapsedMilliseconds / 1000;
+                    result.GeometryDuration = watch.ElapsedMilliseconds;
                 }
-               
+
                 return result;
             }
         }
@@ -191,10 +199,9 @@ namespace XbimRegression
             return Xbim3DModelContext.MeshingBehaviourResult.Default;
         }
 
-        // todo: is caching going to come back?
-        // ReSharper disable once UnusedParameter.Local
         private IModel ParseModelFile(string ifcFileName, bool caching, ILogger<BatchProcessor> logger)
         {
+            IModel ret = null;
             if (string.IsNullOrWhiteSpace(ifcFileName))
                 return null;
             // create a callback for progress
@@ -203,7 +210,11 @@ namespace XbimRegression
                 case ".ifc":
                 case ".ifczip":
                 case ".ifcxml":
-                    return MemoryModel.OpenRead(ifcFileName, logger);
+                    if (caching)
+                        ret = IfcStore.Open(ifcFileName, null, 0);
+                    else
+                        ret = MemoryModel.OpenRead(ifcFileName, logger);
+                    return ret;
                 default:
                     throw new NotImplementedException(
                         string.Format("XbimRegression does not support {0} file formats currently",

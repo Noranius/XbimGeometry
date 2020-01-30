@@ -18,7 +18,7 @@ namespace Xbim.Geometry.Engine.Interop
 
         static XbimGeometryEngine()
         {
-
+             
             // We need to wire in a custom assembly resolver since Xbim.Geometry.Engine is 
             // not located using standard probing rules (due to way we deploy processor specific binaries)
             AppDomain.CurrentDomain.AssemblyResolve += XbimCustomAssemblyResolver.ResolverHandler;
@@ -372,6 +372,13 @@ namespace Xbim.Geometry.Engine.Interop
         }
 
         public IXbimSolidSet CreateSolidSet(IIfcTriangulatedFaceSet shell, ILogger logger)
+        {
+            using (new Tracer(LogHelper.CurrentFunctionName(), this._logger, shell))
+            {
+                return _engine.CreateSolidSet(shell, logger);
+            }
+        }
+        public IXbimSolidSet CreateSolidSet(IIfcPolygonalFaceSet shell, ILogger logger)
         {
             using (new Tracer(LogHelper.CurrentFunctionName(), this._logger, shell))
             {
@@ -800,6 +807,23 @@ namespace Xbim.Geometry.Engine.Interop
                 return _engine.CreateSolidSet(ifcSolid, logger);
             }
         }
+
+        public IXbimGeometryObjectSet CreateSurfaceModel(IIfcTessellatedFaceSet shell, ILogger logger = null)
+        {
+            using (new Tracer(LogHelper.CurrentFunctionName(), this._logger, shell))
+            {
+                return _engine.CreateSurfaceModel(shell, logger);
+            }
+        }
+        public IXbimGeometryObjectSet CreateSurfaceModel(IIfcPolygonalFaceSet shell, ILogger logger = null)
+        {
+            using (new Tracer(LogHelper.CurrentFunctionName(), this._logger, shell))
+            {
+                return _engine.CreateSurfaceModel(shell, logger);
+            }
+        }
+
+        
     }
 
     public static class LogHelper

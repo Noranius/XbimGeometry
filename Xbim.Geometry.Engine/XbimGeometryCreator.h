@@ -47,7 +47,7 @@ namespace Xbim
 				Assembly::Load("Xbim.Tessellator");*/
 				
 				String^ timeOut = ConfigurationManager::AppSettings["BooleanTimeOut"];
-				if (!double::TryParse(timeOut, BooleanTimeOut))
+				if (!int::TryParse(timeOut, BooleanTimeOut))
 					BooleanTimeOut = 60;
 				String^ ignoreIfcSweptDiskSolidParamsString = ConfigurationManager::AppSettings["IgnoreIfcSweptDiskSolidParams"];
 				if(!bool::TryParse(ignoreIfcSweptDiskSolidParamsString,IgnoreIfcSweptDiskSolidParams))
@@ -68,7 +68,8 @@ namespace Xbim
 			static void LogError(ILogger^ logger, Object^ entity, String^ format, ... array<Object^>^ arg);
 			static void LogDebug(ILogger^ logger, Object^ entity, String^ format, ... array<Object^>^ arg);
 
-			static double BooleanTimeOut;
+			static int BooleanTimeOut;
+			
 			static bool IgnoreIfcSweptDiskSolidParams;
 			virtual XbimShapeGeometry^ CreateShapeGeometry(IXbimGeometryObject^ geometryObject, double precision, double deflection, double angle, XbimGeometryType storageType, ILogger^ logger);
 			virtual XbimShapeGeometry^ CreateShapeGeometry(IXbimGeometryObject^ geometryObject, double precision, double deflection, ILogger^ logger/*, double angle = 0.5, XbimGeometryType storageType = XbimGeometryType::Polyhedron*/)
@@ -105,6 +106,7 @@ namespace Xbim
 
 			//Create Wire
 			virtual IXbimWire^ CreateWire(IIfcCurve^ curve, ILogger^ logger);
+			
 			virtual IXbimWire^ CreateWire(IIfcCompositeCurveSegment^ compCurveSeg, ILogger^ logger);
 			//Face creation 
 			virtual IXbimFace^ CreateFace(IIfcProfileDef ^ profile, ILogger^ logger);
@@ -153,6 +155,7 @@ namespace Xbim
 			virtual IXbimSolidSet^ CreateSolidSet(IIfcSurfaceCurveSweptAreaSolid^ ifcSolid, ILogger^ logger);
 
 			virtual IXbimSolidSet^ CreateSolidSet(IIfcTriangulatedFaceSet^ shell, ILogger^ logger);
+			virtual IXbimSolidSet^ CreateSolidSet(IIfcPolygonalFaceSet^ shell, ILogger^ logger);
 			virtual IXbimSolidSet^ CreateSolidSet(IIfcShellBasedSurfaceModel^ ifcSurface, ILogger^ logger);
 			virtual IXbimSolidSet^ CreateSolidSet(IIfcFaceBasedSurfaceModel^ ifcSurface, ILogger^ logger);
 			virtual IXbimSolid^ CreateSolid(IIfcTriangulatedFaceSet^ shell, ILogger^ logger);
@@ -192,7 +195,7 @@ namespace Xbim
 			virtual IXbimSolid^ CreateSolid(IIfcAdvancedBrep^ ifcSolid, ILogger^ logger);
 			virtual IXbimSolid^ CreateSolid(IIfcAdvancedBrepWithVoids^ ifcSolid, ILogger^ logger);
 			virtual IXbimSolid^ CreateSolid(IIfcSectionedSpine^ ifcSolid, ILogger^ logger);
-			virtual IXbimGeometryObjectSet^ CreateSurfaceModel(IIfcTriangulatedFaceSet^ shell, ILogger^ logger);
+			virtual IXbimGeometryObjectSet^ CreateSurfaceModel(IIfcTessellatedFaceSet^ shell, ILogger^ logger);
 
 			//Curves
 			virtual IXbimCurve^ CreateCurve(IIfcCurve^ curve, ILogger^ logger);
